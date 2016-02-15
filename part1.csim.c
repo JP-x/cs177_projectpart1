@@ -149,7 +149,7 @@ void new_driver(int starting_cell)
                 current_cell = needed_cell;
                 (*road)[current_cell].reserve();
                 number_movements++;
-                //cout << process_name() << " moved " << number_movements << " times.\n";
+                cout << process_name() << " moved " << number_movements << " times.\n";
                 hold(R);
             }
             else //needed_cell is occupied  can't move
