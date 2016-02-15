@@ -13,6 +13,12 @@ using namespace std;
 #define MOVING_LENGTH 3 //moving car is considered to occupy 3 cells
 #define STOPPED_LENGTH 2//stopped car occupies 2 cells
 
+#define GREEN 0
+#define YELLOW 1
+#define RED 2
+
+#define SIM_LENGTH SIM_LENGTH
+
 facility_set *road;
 string driver_id = "A"; //character incremented after a call to new_driver
 //process generators
@@ -20,14 +26,19 @@ void add_traffic();
 void new_driver(int starting_cell); //pass in cell to start at
 void new_driver(); //find open space and place self into spot 
 //helper functions for different calculations
+void traffic_light();
+
 int next_cell(int current_cell);
-void init_array();
+void init(); //sets cell values to -1 and init speed array
 bool is_empty(int desired_cell);
 //array containing all departure times
 double D[NUM_CELLS];//default -1 means unoccupied cell?
 int d_id_movement[5];//each slot matches driver process successful movements
-
 double speed[6];
+
+//other globals for tracking
+int LIGHT_STATE = 0;
+
 
 extern "C" void sim()		// main process
 {
@@ -41,7 +52,7 @@ extern "C" void sim()		// main process
     road = new facility_set("road", NUM_CELLS);//dynamic facility set
     cout << "Creating traffic. \n" << endl;
     add_traffic();		// start a stream of departing customers
-	hold (10000);		// wait for a whole day (in minutes) to pass
+	hold (SIM_LENGTH);		// wait for a whole day (in minutes) to pass
 	//report();
 }
 //set all cells to be unoccupied
@@ -54,12 +65,17 @@ void init()
 
     //times that a car occupies at speed[x]
     //given 'speeds' in specifications
+    
+    //may have problems with this speed (can't really use it for waiting)
     speed[0] = 0.0;
-    speed[1] = 3.0/(MOVING_LENGTH*1.0);
-    speed[2] = (11.0/6.0)/(MOVING_LENGTH*1.0);
-    speed[3] = 1.0/(MOVING_LENGTH*1.0);
-    speed[4] = (2.0/3.0)/(MOVING_LENGTH*1.0);
-    speed[5] = (0.5)/(MOVING_LENGTH*1.0);
+    
+    speed[1] = 3.0;
+    speed[2] = (11.0/6.0);
+    speed[3] = 1.0;
+    speed[4] = (2.0/3.0);
+    speed[5] = (0.5);
+    //might have misinterpreted instructions
+    //
 }
 
 bool is_empty(int desired_cell)
@@ -82,17 +98,37 @@ current position, depending on its speed
 
 probably going to add speed as an argument later on
 */
-bool look_ahead(int current_cell)
+bool look_ahead(int current_cell, int current_speed)
 {
+    int look_ahead_length = 0;
     int cur_cell = current_cell;
-    for(int i = 0; i < 8 ; i++)
+
+    if(current_speed == 5){
+        look_ahead_length = 8;
+    }
+    else if(current_speed == 4){
+        look_ahead_length = 6;
+    }
+    else if(current_speed == 3 || current_speed == 2){
+        look_ahead_length = 4;
+    }
+    else if(current_speed == 1){
+        look_ahead_length = 2 ;
+    }
+    else 
+    {
+        //wut
+        look_ahead_length = 2;
+    }
+
+    for(int i = 0; i < look_ahead_length ; i++)
     {
         if((*road)[cur_cell].status() == BUSY)
         {
             return false;
         }
         //increment cell, modulo to stay within range
-        cur_cell = (current_cell+1)%NUM_CELLS;
+        cur_cell = (cur_cell+1)%NUM_CELLS;
     }
     return true;
 
@@ -112,7 +148,8 @@ long group_size();
 void add_traffic()		// this model segment spawns departing customers
 {
 	create("add_traffic");
-    
+    //set light
+    traffic_light();
     new_driver(0);
     //new_driver(2);
     /*
@@ -127,13 +164,51 @@ void add_traffic()		// this model segment spawns departing customers
 	}*/
 }
 
-void new_driver()
+//traffic light process
+//waits for random times and switches light state
+void traffic_light() 
 {
-    create("new_driver");
-    double R = 0.0;
-    
-    
+    create("light");
+    //start light at green
+    LIGHT_STATE = GREEN;
+    int light_change_time = clock + 120;
+    double rand_time = 0.0;
+    while(clock < SIM_LENGTH)//keep going in circles until time ends
+    {
+        if(light_change_time < clock)
+        {
+            if(LIGHT_STATE == GREEN)
+            {
+                rand_time = expntl(120);
+                light_change_time = rand_time + clock;
+                hold(rand_time);//hold for 2 minutes (120 sim time)
+                //change light after waiting
+                LIGHT_STATE = YELLOW;
+            }
+            else if(LIGHT_STATE == YELLOW)
+            {
+                rand_time = 10;
+                light_change_time = rand_time + clock;
+                hold(10);
+                //change light after waiting
+                LIGHT_STATE = RED;
+            }
+            else if(LIGHT_STATE == RED)
+            {
+                rand_time = uniform(30,90);
+                light_change_time = rand_time + clock;
+                hold(rand_time);
+                //change light after waiting
+                LIGHT_STATE = GREEN;
+            }
+        }
+        else
+        {
+            hold(1);
+        }
+    }
 }
+
 //ASSUMPTION: GIVEN CELL IS AVAILABLE
 void new_driver(int starting_cell)
 {
@@ -161,7 +236,7 @@ void new_driver(int starting_cell)
     //car takes spot in cell
     (*road)[starting_cell].reserve();
     current_cell = starting_cell;
-    while(clock < 10000)//keep going in circles until time ends
+    while(clock < SIM_LENGTH)//keep going in circles until time ends
     {
         //cout << "current_clock: " << clock << endl;
         //if time to leave
