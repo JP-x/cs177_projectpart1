@@ -110,6 +110,7 @@ void new_driver(int starting_cell)
     create(driver_process_id.c_str());
     /////////////////////////////////
     //trace_on();
+    //
     cout << "lolwut" << endl;
     double R = 0.0; //remaining time in cell
     double departure_time = 0.0;
