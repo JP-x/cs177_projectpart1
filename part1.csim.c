@@ -38,7 +38,7 @@ extern "C" void sim()		// main process
     cout << "Creating traffic. \n" << endl;
     add_traffic();		// start a stream of departing customers
 	hold (10000);		// wait for a whole day (in minutes) to pass
-	report();
+	//report();
 }
 //set all cells to be unoccupied
 void init_array()
