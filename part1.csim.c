@@ -10,9 +10,11 @@ using namespace std;
 #define NUM_CELLS 120		// number of cells on road
 
 #define TINY 1.e-20		// a very small time period AKA EPSILON
+#define MOVING_LENGTH 3 //moving car is considered to occupy 3 cells
+#define STOPPED_LENGTH 2//stopped car occupies 2 cells
 
 facility_set *road;
-string driver_id = "0";
+string driver_id = "A"; //character incremented after a call to new_driver
 //process generators
 void add_traffic();	
 void new_driver(int starting_cell); //pass in cell to start at
@@ -25,14 +27,16 @@ bool is_empty(int desired_cell);
 double D[NUM_CELLS];//default -1 means unoccupied cell?
 int d_id_movement[5];//each slot matches driver process successful movements
 
+double speed[6];
+
 extern "C" void sim()		// main process
 {
 	create("sim");
 	//arrivals();		// start a stream of arriving customers
 	//std::printf("Enter number of vending machines: " );
     //std::scanf("%l",&n_machines); 
-    cout << "Initializing array.\n" << endl;
-    init_array();
+    cout << "Initializing arrays.\n" << endl;
+    init();
     //HARD CODED VALUE SINCE INPUT HAS ISSUES FOR SOME REASON
     road = new facility_set("road", NUM_CELLS);//dynamic facility set
     cout << "Creating traffic. \n" << endl;
@@ -41,12 +45,21 @@ extern "C" void sim()		// main process
 	//report();
 }
 //set all cells to be unoccupied
-void init_array()
+void init()
 {
     for(int i = 0; i < NUM_CELLS ; i++)
     {
         D[i] = -1;
     }
+
+    //times that a car occupies at speed[x]
+    //given 'speeds' in specifications
+    speed[0] = 0.0;
+    speed[1] = 3.0/(MOVING_LENGTH*1.0);
+    speed[2] = (11.0/6.0)/(MOVING_LENGTH*1.0);
+    speed[3] = 1.0/(MOVING_LENGTH*1.0);
+    speed[4] = (2.0/3.0)/(MOVING_LENGTH*1.0);
+    speed[5] = (0.5)/(MOVING_LENGTH*1.0);
 }
 
 bool is_empty(int desired_cell)
@@ -60,6 +73,29 @@ bool is_empty(int desired_cell)
     {
         return false;
     }
+}
+
+/* 
+a moving car monitors the status of the roadway up 
+to 4 car-lengths (or 8 cells) ahead of its 
+current position, depending on its speed
+
+probably going to add speed as an argument later on
+*/
+bool look_ahead(int current_cell)
+{
+    int cur_cell = current_cell;
+    for(int i = 0; i < 8 ; i++)
+    {
+        if((*road)[cur_cell].status() == BUSY)
+        {
+            return false;
+        }
+        //increment cell, modulo to stay within range
+        cur_cell = (current_cell+1)%NUM_CELLS;
+    }
+    return true;
+
 }
 
 //return index of needed cell
