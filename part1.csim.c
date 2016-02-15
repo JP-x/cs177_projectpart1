@@ -17,7 +17,7 @@ using namespace std;
 #define YELLOW 1
 #define RED 2
 
-#define SIM_LENGTH SIM_LENGTH
+#define SIM_LENGTH 10000
 
 facility_set *road;
 string driver_id = "A"; //character incremented after a call to new_driver
@@ -171,7 +171,7 @@ void traffic_light()
     create("light");
     //start light at green
     LIGHT_STATE = GREEN;
-    int light_change_time = clock + 120;
+    double light_change_time = clock + 120;
     double rand_time = 0.0;
     while(clock < SIM_LENGTH)//keep going in circles until time ends
     {
