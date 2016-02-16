@@ -287,7 +287,7 @@ void new_driver(int starting_cell)
         tail_cell = 119;
     }
     //calculate departure time
-    departure_time = clock + speed[current_speed];
+    departure_time = clock + speed[cur_speed];
     //set cell departure time in global array
     D[starting_cell] = departure_time;
     //car takes reserves 2 cells
