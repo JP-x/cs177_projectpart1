@@ -12,11 +12,14 @@ using namespace std;
 #define TINY 1.e-20		// a very small time period AKA EPSILON
 #define MOVING_LENGTH 3 //moving car is considered to occupy 3 cells
 #define STOPPED_LENGTH 2//stopped car occupies 2 cells
-
+#define CAR_LEN 2.0 //default size of car
+#define CROSSWALK1 118
+#define CROSSWALK2 119
 #define GREEN 0
 #define YELLOW 1
 #define RED 2
-
+#define STOPPED 0
+#define MOVING 1
 #define SIM_LENGTH 10000
 
 facility_set *road;
@@ -31,26 +34,40 @@ void traffic_light();
 int next_cell(int current_cell);
 void init(); //sets cell values to -1 and init speed array
 bool is_empty(int desired_cell);
+void accelerate(int &speed, int &target_speed);
+void brake(int &speed, int ahead_speed);
+//return car speed
+int infront_speed(int c_id);
 //array containing all departure times
 double D[NUM_CELLS];//default -1 means unoccupied cell?
+
+//MAY REMOVE
 int d_id_movement[5];//each slot matches driver process successful movements
+
+int d_id_speeds[100];//max 100 cars. ID 0 refers to car A, ID 1 refers to car B
+
 double speed[6];
 
 //other globals for tracking
 int LIGHT_STATE = 0;
-
+int NUM_CARS = 1;
+int car_ids = 0;//used for d_id_speeds
 
 extern "C" void sim()		// main process
 {
 	create("sim");
-	//arrivals();		// start a stream of arriving customers
-	//std::printf("Enter number of vending machines: " );
-    //std::scanf("%l",&n_machines); 
+
     cout << "Initializing arrays.\n" << endl;
     init();
     //HARD CODED VALUE SINCE INPUT HAS ISSUES FOR SOME REASON
     road = new facility_set("road", NUM_CELLS);//dynamic facility set
     cout << "Creating traffic. \n" << endl;
+
+    //set number of cars
+    cout << "Enter number of cars on the road: ";
+    cin >> NUM_CARS;
+
+
     add_traffic();		// start a stream of departing customers
 	hold (SIM_LENGTH);		// wait for a whole day (in minutes) to pass
 	//report();
@@ -69,11 +86,11 @@ void init()
     //may have problems with this speed (can't really use it for waiting)
     speed[0] = 0.0;
     
-    speed[1] = 3.0;
-    speed[2] = (11.0/6.0);
-    speed[3] = 1.0;
-    speed[4] = (2.0/3.0);
-    speed[5] = (0.5);
+    speed[1] = 3.0/CAR_LEN;
+    speed[2] = (11.0/6.0)/CAR_LEN;
+    speed[3] = 1.0/CAR_LEN;
+    speed[4] = (2.0/3.0)/CAR_LEN;
+    speed[5] = (0.5)/CAR_LEN;
     //might have misinterpreted instructions
     //
 }
@@ -117,7 +134,7 @@ bool look_ahead(int current_cell, int current_speed)
     }
     else 
     {
-        //wut
+        //not sure if look ahead is needed
         look_ahead_length = 2;
     }
 
@@ -137,32 +154,39 @@ bool look_ahead(int current_cell, int current_speed)
 //return index of needed cell
 int next_cell(int current_cell)
 {
-    return (current_cell+1)%NUM_CELLS;
+    int nxt_cell =  (current_cell+1)%NUM_CELLS;
+    //118 and 119 are crosswalk 
+    //might need to change value if light is red
+    //handled in look_ahead
+    return nxt_cell;
 }
-
-long group_size();
-//uniform(3,5)
-//long cur_q_size = 0;
-//cur_q_size = (*regularMachines)[i].qlength();
 
 void add_traffic()		// this model segment spawns departing customers
 {
 	create("add_traffic");
     //set light
-    traffic_light();
-    new_driver(0);
+    //UNCOMMENT FOR PART 2
+    //traffic_light();
+
+    new_driver(1);//initial car starts at 1 so that the tail of the car is at zero
+    
     //new_driver(2);
+    //car length is 2 since all cars are stopped
+    
     /*
-	while(clock < 1440.)	//
-	{
-		hold(expntl(10)); // exponential interarrivals, mean 10 minutes
-		//long group = group_size(); random group size (leftover from lab3)
-		long group = 2;
-        //add 2 drivers to the road
-        for (long i=0;i<group;i++)
-			new_driver();	// new driver appears on road
-	}*/
+    int start_pos = NUM_CARS*2;
+    int car_count = NUM_CARS;
+    for(int i = NUM_CARS ; i > 0 ; i--)
+    {
+        new_driver(start_pos);
+        car_count--;
+        start_pos = car_count*2;
+    }
+    */
 }
+
+//Repeat experiment 1 when cells 118 amd 119 represent 
+//a pedestrian cross-walk controlled by a traffic light (described below)
 
 //traffic light process
 //waits for random times and switches light state
@@ -190,8 +214,18 @@ void traffic_light()
                 rand_time = 10;
                 light_change_time = rand_time + clock;
                 hold(10);
+                
+                //THIS MAY BE A PROBLEM WHERE
+                //CARS ARE CONSTANTLY MOVING
+                //SO THE LIGHT MAY NEVER CHANGE
                 //change light after waiting
-                LIGHT_STATE = RED;
+                if(is_empty(CROSSWALK1) && is_empty(CROSSWALK2))
+                {
+                    LIGHT_STATE = RED;
+                    //reserve spaces for crosswalk
+                    (*road)[CROSSWALK1].reserve();
+                    (*road)[CROSSWALK2].reserve();
+                }
             }
             else if(LIGHT_STATE == RED)
             {
@@ -200,6 +234,9 @@ void traffic_light()
                 hold(rand_time);
                 //change light after waiting
                 LIGHT_STATE = GREEN;
+                //light is green release crosswalks
+                (*road)[CROSSWALK1].release();
+                (*road)[CROSSWALK2].release();
             }
         }
         else
@@ -210,6 +247,11 @@ void traffic_light()
 }
 
 //ASSUMPTION: GIVEN CELL IS AVAILABLE
+//cars travel at constant speed for one car length
+//accelerate = step up speed
+//brake lower speed by 2 (if possible)
+
+
 void new_driver(int starting_cell)
 {
     cout << "Placing driver at cell: " << starting_cell << endl;
@@ -222,20 +264,37 @@ void new_driver(int starting_cell)
     /////////////////////////////////
     //trace_on();
     //
-    cout << "lolwut" << endl;
+   
     double R = 0.0; //remaining time in cell
     double departure_time = 0.0;
     int needed_cell = 0;
+    int car_state = STOPPED;
     int current_cell;
+    int cur_speed = 0;//used for upping speed speed[cur_speed]
+    //used for keeping track of car speeds
+    int car_id = car_ids;
+    car_ids++;
+    //reset after reaching 120 movements
     int number_movements = 0;
+    //increment after 120 movements
+    int laps = 0;
+    //nose1 is set when moving
+    int nose1_cell = 0;
+    int nose_cell = starting_cell;
+    int tail_cell = starting_cell-1;
+    if(tail_cell == -1)
+    {
+        tail_cell = 119;
+    }
     //calculate departure time
-    R = expntl(1);
-    departure_time = clock + R;
+    departure_time = clock + speed[current_speed];
     //set cell departure time in global array
     D[starting_cell] = departure_time;
-    //car takes spot in cell
-    (*road)[starting_cell].reserve();
+    //car takes reserves 2 cells
+    (*road)[nose_cell].reserve();
+    (*road)[tail_cell].reserve();
     current_cell = starting_cell;
+
     while(clock < SIM_LENGTH)//keep going in circles until time ends
     {
         //cout << "current_clock: " << clock << endl;
@@ -247,14 +306,13 @@ void new_driver(int starting_cell)
             //release current_cell
             //determine cell to travel to next (needed cell j)
             needed_cell = next_cell(current_cell);
-            if(is_empty(needed_cell))
+            if(look_ahead(current_cell,cur_speed))
             {
                 //cout << driver_process_id << " moving to cell: " << needed_cell << endl;
                 (*road)[current_cell].release(); //release cell in facility
                 D[current_cell] = -1; //reset departure time in D
                 //set new departure time
-                R = expntl(1);
-                departure_time = clock + R;
+                departure_time = clock + speed[current_speed];
                 D[needed_cell] = departure_time;
                 //update cell
                 current_cell = needed_cell;
@@ -263,31 +321,14 @@ void new_driver(int starting_cell)
                 cout << process_name() << " moved " << number_movements << " times.\n";
                 hold(R);
             }
-            else //needed_cell is occupied  can't move
+            else //look_ahead determines there is a car within range
             {
-                //determine new departure_time
-                double new_time1 = 0.0;
-                double new_time2 = 0.0; 
-                new_time1 = D[needed_cell] + TINY;
-                new_time2 = clock + R;
-                //take max of 2 new times
-                //cout << "Cell: " << needed_cell << " occupied.\n";
-                if(new_time1 > new_time2)
-                {
-                    departure_time = new_time1;
-                }
-                else
-                {
-                    departure_time = new_time2;
-                }
-                //cout << "New departure time: " << departure_time << endl;
-                D[current_cell] = departure_time;
-                //hold for new time
-                if(number_movements > 24)
-                cout << process_name() << " moved successfully " << number_movements << " times.\n";
-                
-                number_movements = 0;
-                hold(D[current_cell]-clock);
+                //driver 1 second reaction time
+                hold(1);
+                //determine new speed
+                int infr_speed = infront_speed(car_id);
+                brake(current_speed, infr_speed);
+
             }
         }
         else
@@ -299,14 +340,31 @@ void new_driver(int starting_cell)
    //cout << process_name() << "Number of movements: " << number_movements << endl; 
 }
 
-long group_size()	// function gives the number of customers in a group
+int infront_speed(int c_id)
 {
-	double x = prob();
-	if (x < 0.3) return 1;
-	else
-	{
-		if (x < 0.7) return 2;
-		else
-			return 4;
-	}
+    if(c_id == 0)//lfirst car is looking at the last cars speed (case of overlapping car)
+    {
+        return d_id_speeds[NUM_CARS-1];
+    }
+    else if(c_id == NUM_CARS-1) //last car is looking at first cars speed
+    {
+        return d_id_speeds[0];
+    }
+    else //other cars just look in front of them
+    {
+        return d_id_speeds[c_id+1];
+    }
+}
+
+void brake(int &speed, int ahead_speed)
+{
+    int lower_speed = speed -2 ;
+    if(lower_speed < ahead_speed)
+    {
+        speed = ahead_speed;
+    }
+    else
+    {
+        speed = lower_speed;
+    }
 }
