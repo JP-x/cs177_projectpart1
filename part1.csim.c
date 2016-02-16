@@ -312,7 +312,7 @@ void new_driver(int starting_cell)
                 (*road)[current_cell].release(); //release cell in facility
                 D[current_cell] = -1; //reset departure time in D
                 //set new departure time
-                departure_time = clock + speed[current_speed];
+                departure_time = clock + speed[cur_speed];
                 D[needed_cell] = departure_time;
                 //update cell
                 current_cell = needed_cell;
@@ -327,7 +327,7 @@ void new_driver(int starting_cell)
                 hold(1);
                 //determine new speed
                 int infr_speed = infront_speed(car_id);
-                brake(current_speed, infr_speed);
+                brake(cur_speed, infr_speed);
 
             }
         }
