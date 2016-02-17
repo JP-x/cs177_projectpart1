@@ -258,7 +258,7 @@ void new_driver(int starting_cell)
     string driver_process_id = "";
     driver_process_id = "new_driver"+driver_id;
     driver_id[0] = driver_id[0] + 1;
-    
+    cout << uniform(0,5) << endl << endl << endl;
     ///////////CREATE DRIVER PROCESS//////////////////
     create(driver_process_id.c_str());
     /////////////////////////////////
@@ -328,6 +328,14 @@ void new_driver(int starting_cell)
                 //determine new speed
                 int infr_speed = infront_speed(car_id);
                 brake(cur_speed, infr_speed);
+                if(cur_speed == 0)
+                {
+                    car_state = STOPPED;
+                }
+                else
+                {
+                    car_state = MOVING;
+                }
 
             }
         }
