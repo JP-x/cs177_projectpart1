@@ -67,8 +67,8 @@ extern "C" void sim()		// main process
     cout << "Creating traffic. \n" << endl;
 
     //set number of cars
-    //cout << "Enter number of cars on the road: ";
-    //cin >> NUM_CARS;
+    cout << "Enter number of cars on the road: ";
+    cin >> NUM_CARS;
 
 
     add_traffic();		// start a stream of departing customers
@@ -179,12 +179,12 @@ void add_traffic()		// this model segment spawns departing customers
     //UNCOMMENT FOR PART 2
     traffic_light();
 
-    new_driver(1);//initial car starts at 1 so that the tail of the car is at zero
+    //new_driver(1);//initial car starts at 1 so that the tail of the car is at zero
     
     //new_driver(2);
     //car length is 2 since all cars are stopped
     
-    /*
+    
     int start_pos = NUM_CARS*2;
     int car_count = NUM_CARS;
     for(int i = NUM_CARS ; i > 0 ; i--)
@@ -193,7 +193,7 @@ void add_traffic()		// this model segment spawns departing customers
         car_count--;
         start_pos = car_count*2;
     }
-    */
+    
 }
 
 //Repeat experiment 1 when cells 118 amd 119 represent 
