@@ -224,6 +224,7 @@ void traffic_light()
             {
                 rand_time = 10;
                 light_change_time = rand_time + clock;
+                cout << "YELLOW_LIGHT!" << endl;
                 hold(10);
                 
                 //THIS MAY BE A PROBLEM WHERE
@@ -242,6 +243,7 @@ void traffic_light()
             {
                 rand_time = uniform(30,90);
                 light_change_time = rand_time + clock;
+                cout << "RED LIGHT!" << endl;
                 hold(rand_time);
                 //change light after waiting
                 LIGHT_STATE = GREEN;
@@ -327,6 +329,10 @@ void new_driver(int starting_cell)
                 //car can move set new state to moving
                 car_state = MOVING;
                 //increase speed (if not at target)
+                if(speed == 0)
+                {
+                    cout << "car_id:" << car_id <<  "no longer stopped" << endl;
+                }
                 accelerate(cur_speed, car_id);
                 d_id_speeds[car_id] = cur_speed;
                 //cout << "increasing speed" << endl;
@@ -397,7 +403,7 @@ void new_driver(int starting_cell)
                 int infr_speed = infront_speed(car_id);
                 if( (LIGHT_STATE == YELLOW || LIGHT_STATE == RED) && nose_cell >= 110)//if in range BRAKE FOR LIGHT
                 {
-                    cout << "car_id: " << car_id << " slowing down for light" << endl;
+                    cout << "car_id: " << car_id << " slowing down for light." << endl;
                     infr_speed = 0;
                 }
                 brake(cur_speed, infr_speed);
@@ -412,7 +418,7 @@ void new_driver(int starting_cell)
                 if(cur_speed == 0)
                 {
                     car_state = STOPPED;
-                    cout << "STOPPED FOR LIGHT" << endl;
+                    cout << "car_id: " << car_id <<" STOPPED FOR LIGHT." << endl;
                     //(*road)[nose1_cell].release(); //stopped release nose1cell MIGHT NOT NEED
                 }
                 else
