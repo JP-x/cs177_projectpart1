@@ -395,7 +395,7 @@ void new_driver(int starting_cell)
                 hold(1);
                 //determine new speed
                 int infr_speed = infront_speed(car_id);
-                if(LIGHT_STATE == YELLOW && nose_cell >= 110)//if in range BRAKE FOR LIGHT
+                if( (LIGHT_STATE == YELLOW || LIGHT_STATE == RED) && nose_cell >= 110)//if in range BRAKE FOR LIGHT
                 {
                     cout << "car_id: " << car_id << " slowing down for light" << endl;
                     infr_speed = 0;
