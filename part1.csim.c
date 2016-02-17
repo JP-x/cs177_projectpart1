@@ -6,6 +6,7 @@
 #include "cpp.h"
 #include <string.h>
 #include <cstdio>
+#include <time> //not sure if conflicts with csim
 using namespace std;
 #define NUM_CELLS 120		// number of cells on road
 
@@ -56,7 +57,7 @@ int car_ids = 0;//used for d_id_speeds
 extern "C" void sim()		// main process
 {
 	create("sim");
-
+    srand(time(NULL));
     cout << "Initializing arrays.\n" << endl;
     init();
     //HARD CODED VALUE SINCE INPUT HAS ISSUES FOR SOME REASON
@@ -64,8 +65,8 @@ extern "C" void sim()		// main process
     cout << "Creating traffic. \n" << endl;
 
     //set number of cars
-    cout << "Enter number of cars on the road: ";
-    cin >> NUM_CARS;
+    //cout << "Enter number of cars on the road: ";
+    //cin >> NUM_CARS;
 
 
     add_traffic();		// start a stream of departing customers
@@ -258,7 +259,7 @@ void new_driver(int starting_cell)
     string driver_process_id = "";
     driver_process_id = "new_driver"+driver_id;
     driver_id[0] = driver_id[0] + 1;
-    cout << uniform(0,5) << endl << endl << endl;
+    cout << rand()%4 + 2 << endl << endl << endl;
     ///////////CREATE DRIVER PROCESS//////////////////
     create(driver_process_id.c_str());
     /////////////////////////////////
