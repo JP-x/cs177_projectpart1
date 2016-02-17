@@ -6,7 +6,7 @@
 #include "cpp.h"
 #include <string.h>
 #include <cstdio>
-#include <time> //not sure if conflicts with csim
+#include <time.h> //not sure if conflicts with csim
 using namespace std;
 #define NUM_CELLS 120		// number of cells on road
 
@@ -29,16 +29,18 @@ string driver_id = "A"; //character incremented after a call to new_driver
 void add_traffic();	
 void new_driver(int starting_cell); //pass in cell to start at
 void new_driver(); //find open space and place self into spot 
+void target_speed_generator(); //randomly generate new target speeds for every car every 1-2 minutes
 //helper functions for different calculations
 void traffic_light();
 
 int next_cell(int current_cell);
 void init(); //sets cell values to -1 and init speed array
 bool is_empty(int desired_cell);
-void accelerate(int &speed, int &target_speed);
+void accelerate(int &speed, int car_id);
 void brake(int &speed, int ahead_speed);
 //return car speed
 int infront_speed(int c_id);
+int rand_speed();
 //array containing all departure times
 double D[NUM_CELLS];//default -1 means unoccupied cell?
 
@@ -46,7 +48,7 @@ double D[NUM_CELLS];//default -1 means unoccupied cell?
 int d_id_movement[5];//each slot matches driver process successful movements
 
 int d_id_speeds[100];//max 100 cars. ID 0 refers to car A, ID 1 refers to car B
-
+int d_id_targetspeeds[100];//used for randomly generated speeds
 double speed[6];
 
 //other globals for tracking
@@ -70,6 +72,7 @@ extern "C" void sim()		// main process
 
 
     add_traffic();		// start a stream of departing customers
+    target_speed_generator();
 	hold (SIM_LENGTH);		// wait for a whole day (in minutes) to pass
 	//report();
 }
@@ -119,7 +122,7 @@ probably going to add speed as an argument later on
 bool look_ahead(int current_cell, int current_speed)
 {
     int look_ahead_length = 0;
-    int cur_cell = current_cell;
+    int cur_cell = current_cell%NUM_CELLS; //prevent out of range access
 
     if(current_speed == 5){
         look_ahead_length = 8;
@@ -259,7 +262,7 @@ void new_driver(int starting_cell)
     string driver_process_id = "";
     driver_process_id = "new_driver"+driver_id;
     driver_id[0] = driver_id[0] + 1;
-    cout << rand()%4 + 2 << endl << endl << endl;
+    //rand()%4 + 2 
     ///////////CREATE DRIVER PROCESS//////////////////
     create(driver_process_id.c_str());
     /////////////////////////////////
@@ -272,15 +275,17 @@ void new_driver(int starting_cell)
     int car_state = STOPPED;
     int current_cell;
     int cur_speed = 0;//used for upping speed speed[cur_speed]
+    
     //used for keeping track of car speeds
     int car_id = car_ids;
+    //increment counter so next car gets new id
     car_ids++;
     //reset after reaching 120 movements
     int number_movements = 0;
     //increment after 120 movements
     int laps = 0;
     //nose1 is set when moving
-    int nose1_cell = 0;
+    int nose1_cell = (starting_cell+1)%NUM_CELLS;//prevent out of range
     int nose_cell = starting_cell;
     int tail_cell = starting_cell-1;
     if(tail_cell == -1)
@@ -307,23 +312,74 @@ void new_driver(int starting_cell)
             //release current_cell
             //determine cell to travel to next (needed cell j)
             needed_cell = next_cell(current_cell);
-            if(look_ahead(current_cell,cur_speed))
+            //+1 to compensate for extra cell while moving
+            //otherwise look ahead would catch the car that looking ahead
+            //to determine that it is being blocked by itself
+            if(look_ahead(current_cell+1,cur_speed))//clear to accelerate
             {
+                //car can move set new state to moving
+                car_state = MOVING;
+                //increase speed (if not at target)
+                accelerate(cur_speed, car_id);
                 //cout << driver_process_id << " moving to cell: " << needed_cell << endl;
-                (*road)[current_cell].release(); //release cell in facility
-                D[current_cell] = -1; //reset departure time in D
+                //get a new set of cells to move to
+                tail_cell = current_cell-1;
+                nose_cell = current_cell;
+                nose1_cell = (current_cell+1)%NUM_CELLS;//prevent out of range 
+
+                if(tail_cell == -1)// occurs when nose is at 0
+                {
+                    tail_cell = 119;
+                }
+                //determine which cells to grab next
+                int next_tailcell = next_cell(tail_cell);
+                int next_nosecell = next_cell(nose_cell);
+                int next_nose1cell = next_cell(nose1_cell);
+
+                //release cells
+                (*road)[tail_cell].release(); //release cell in facility
+                (*road)[nose_cell].release();
+                if(!is_empty(nose1_cell))//case where just starting to move do not want to release an empty cell
+                {
+                    (*road)[nose1_cell].release();//moving so occupying 3 cells
+                }
+                D[tail_cell] = -1;
+                D[nose_cell] = -1;
+                D[nose1_cell] = -1;
+
+                //set new cells
+                tail_cell = next_tailcell;
+                nose_cell = next_nosecell;
+                nose1_cell = next_nose1cell;
+
                 //set new departure time
                 departure_time = clock + speed[cur_speed];
-                D[needed_cell] = departure_time;
+                D[tail_cell] = departure_time;
+                D[nose_cell] = departure_time;
+                D[nose1_cell] = departure_time;
+
                 //update cell
                 current_cell = needed_cell;
-                (*road)[current_cell].reserve();
+                (*road)[tail_cell].reserve();
+                (*road)[nose_cell].reserve();
+                (*road)[nose1_cell].reserve();
                 number_movements++;
-                cout << process_name() << " moved " << number_movements << " times.\n";
-                hold(R);
+                //check if completion of lap
+                if(number_movements >= 120)
+                {
+                    laps++;
+                    number_movements = 0;
+                }
+                else
+                {
+                    number_movements++;
+                }
+                //cout << process_name() << " moved " << number_movements << " times.\n";
+                //driver 1 second reaction time
+                hold(1);
             }
             else //look_ahead determines there is a car within range
-            {
+            {//change speed because of obstruction
                 //driver 1 second reaction time
                 hold(1);
                 //determine new speed
@@ -332,12 +388,71 @@ void new_driver(int starting_cell)
                 if(cur_speed == 0)
                 {
                     car_state = STOPPED;
+                    //(*road)[nose1_cell].release(); //stopped release nose1cell MIGHT NOT NEED
                 }
                 else
                 {
                     car_state = MOVING;
                 }
+                //cout << driver_process_id << " moving to cell: " << needed_cell << endl;
+                //get a new set of cells to move to
+                tail_cell = current_cell-1;
+                nose_cell = current_cell;
+                nose1_cell = (current_cell+1)%NUM_CELLS;//prevent out of range 
 
+                if(tail_cell == -1)// occurs when nose is at 0
+                {
+                    tail_cell = 119;
+                }
+                //determine which cells to grab next
+                int next_tailcell = next_cell(tail_cell);
+                int next_nosecell = next_cell(nose_cell);
+                int next_nose1cell = next_cell(nose1_cell);
+
+                //release cells
+                (*road)[tail_cell].release(); //release cell in facility
+                (*road)[nose_cell].release();
+                if(!is_empty(nose1_cell))//case where just starting to move do not want to release an empty cell
+                {
+                    (*road)[nose1_cell].release();//moving so occupying 3 cells
+                    D[nose1_cell] = -1;
+                }
+                D[tail_cell] = -1;
+                D[nose_cell] = -1;
+
+                //set new cells
+                tail_cell = next_tailcell;
+                nose_cell = next_nosecell;
+                nose1_cell = next_nose1cell;
+
+                //set new departure time
+                departure_time = clock + speed[cur_speed];
+                D[tail_cell] = departure_time;
+                D[nose_cell] = departure_time;
+
+                //update cell
+                current_cell = needed_cell;
+                (*road)[tail_cell].reserve();
+                (*road)[nose_cell].reserve();
+                if(car_state != STOPPED)
+                {
+                    D[nose1_cell] = departure_time;
+                    (*road)[nose1_cell].reserve();
+                     number_movements++;
+                }
+                //check if completion of lap
+                if(number_movements >= 120)
+                {
+                    laps++;
+                    number_movements = 0;
+                }
+                else
+                {
+                    number_movements++;
+                }
+                //cout << process_name() << " moved " << number_movements << " times.\n";
+                //driver 1 second reaction time
+                hold(1);
             }
         }
         else
@@ -376,4 +491,53 @@ void brake(int &speed, int ahead_speed)
     {
         speed = lower_speed;
     }
+}
+
+int rand_speed()
+{
+    return rand()%4 + 2 ; // range [2,5]
+}
+
+void target_speed_generator()
+{
+    create("target_speed_generator");
+    
+    //setup random speeds for every car
+    for(int i = 0; i < 100 ; i++)
+    {
+        d_id_targetspeeds[i] = rand_speed();
+    }
+
+    double wait_time = uniform(120,240);
+    double generation_time = clock + wait_time;
+    while(clock < SIM_LENGTH)//keep going in circles until time ends
+    {
+        if(generation_time < clock)
+        {
+            //generate a new set of random speeds
+            for(int i = 0; i < 100 ; i++)
+            {
+                d_id_targetspeeds[i] = rand_speed();
+            }
+            //set new generation time
+            wait_time = uniform(120,240);
+            generation_time = clock + wait_time;
+            hold(wait_time);
+        }
+        else
+        {
+            //just wait for another second
+            hold(1);
+        }
+    }
+}
+
+void accelerate(int &speed, int car_id)
+{
+    if(speed < d_id_targetspeeds[car_id] )
+    {
+        speed++;
+    }
+    //don't change speed unless needed
+
 }
