@@ -397,6 +397,7 @@ void new_driver(int starting_cell)
                 int infr_speed = infront_speed(car_id);
                 if(LIGHT_STATE == YELLOW && nose_cell >= 110)//if in range BRAKE FOR LIGHT
                 {
+                    cout << "car_id: " << car_id << " slowing down for light" << endl;
                     infr_speed = 0;
                 }
                 brake(cur_speed, infr_speed);
@@ -411,7 +412,7 @@ void new_driver(int starting_cell)
                 if(cur_speed == 0)
                 {
                     car_state = STOPPED;
-                    cout << "STOPPED FOR LIGHT";
+                    cout << "STOPPED FOR LIGHT" << endl;
                     //(*road)[nose1_cell].release(); //stopped release nose1cell MIGHT NOT NEED
                 }
                 else
@@ -520,7 +521,6 @@ void brake(int &speed, int ahead_speed)
     if(lower_speed < ahead_speed)
     {
         speed = ahead_speed;
-        cout << "attempting to match speed of car ahead";
     }
     else
     {
