@@ -329,9 +329,9 @@ void new_driver(int starting_cell)
                 //increase speed (if not at target)
                 accelerate(cur_speed, car_id);
                 d_id_speeds[car_id] = cur_speed;
-                cout << "increasing speed" << endl;
-                cout <<  "target_speed: " <<  d_id_targetspeeds[car_id] << endl;
-                cout << "current_speed: " <<  cur_speed << endl;
+                //cout << "increasing speed" << endl;
+                //cout <<  "target_speed: " <<  d_id_targetspeeds[car_id] << endl;
+                //cout << "current_speed: " <<  cur_speed << endl;
                 //cout << driver_process_id << " moving to cell: " << needed_cell << endl;
                 //get a new set of cells to move to
                 tail_cell = current_cell-1;
@@ -396,12 +396,12 @@ void new_driver(int starting_cell)
                 //determine new speed
                 int infr_speed = infront_speed(car_id);
                 brake(cur_speed, infr_speed);
+                cout << "car_id: " << car_id << "braking." << endl;
+                
 
-                if(cur_speed )
-
-                cout << "decreasing speed" << endl;
-                cout <<  "target_speed: " <<  d_id_targetspeeds[car_id] << endl;
-                cout << "current_speed: " <<  cur_speed << endl;
+                //cout << "decreasing speed" << endl;
+                //cout <<  "target_speed: " <<  d_id_targetspeeds[car_id] << endl;
+                //cout << "current_speed: " <<  cur_speed << endl;
 
 
                 if(cur_speed == 0)
@@ -515,6 +515,7 @@ void brake(int &speed, int ahead_speed)
     if(lower_speed < ahead_speed)
     {
         speed = ahead_speed;
+        cout << "attempting to match speed of car ahead";
     }
     else
     {
