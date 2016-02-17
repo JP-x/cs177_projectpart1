@@ -279,7 +279,6 @@ void new_driver(int starting_cell)
     //trace_on();
     //
    
-    double R = 0.0; //remaining time in cell
     double departure_time = 0.0;
     int needed_cell = 0;
     int car_state = STOPPED;
@@ -305,11 +304,13 @@ void new_driver(int starting_cell)
     //calculate departure time
     departure_time = clock + speed[cur_speed];
     //set cell departure time in global array
-    D[starting_cell] = departure_time;
+    D[nose_cell] = departure_time;
+    D[tail_cell] = departure_time;
     //car takes reserves 2 cells
     (*road)[nose_cell].reserve();
     (*road)[tail_cell].reserve();
     current_cell = starting_cell;
+    d_id_speeds[car_id] = 0;
 
     while(clock < SIM_LENGTH)//keep going in circles until time ends
     {
@@ -387,6 +388,7 @@ void new_driver(int starting_cell)
                 {
                     laps++;
                     number_movements = 0;
+                    cout << "car_id: " << car_id << "completed a lap." << endl;
                 }
                 else
                 {
