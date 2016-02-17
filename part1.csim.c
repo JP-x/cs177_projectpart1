@@ -216,6 +216,7 @@ void traffic_light()
             {
                 rand_time = expntl(120);
                 light_change_time = rand_time + clock;
+                cout << "GREEN LIGHT!"
                 hold(rand_time);//hold for 2 minutes (120 sim time)
                 //change light after waiting
                 LIGHT_STATE = YELLOW;
@@ -224,7 +225,7 @@ void traffic_light()
             {
                 rand_time = 10;
                 light_change_time = rand_time + clock;
-                cout << "YELLOW_LIGHT!" << endl;
+                cout << "YELLOW LIGHT!" << endl;
                 hold(10);
                 
                 //THIS MAY BE A PROBLEM WHERE
@@ -329,7 +330,7 @@ void new_driver(int starting_cell)
                 //car can move set new state to moving
                 car_state = MOVING;
                 //increase speed (if not at target)
-                if(speed == 0)
+                if(cur_speed == 0)
                 {
                     cout << "car_id:" << car_id <<  "no longer stopped" << endl;
                 }
