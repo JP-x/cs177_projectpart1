@@ -324,7 +324,7 @@ void new_driver(int starting_cell)
                 d_id_speeds[car_id] = cur_speed;
                 cout << "increasing speed" << endl;
                 cout <<  "target_speed: " <<  d_id_targetspeeds[car_id] << endl;
-                cout << "current_speed: " <<  current_speed << endl;
+                cout << "current_speed: " <<  cur_speed << endl;
                 //cout << driver_process_id << " moving to cell: " << needed_cell << endl;
                 //get a new set of cells to move to
                 tail_cell = current_cell-1;
@@ -392,7 +392,7 @@ void new_driver(int starting_cell)
 
                 cout << "decreasing speed" << endl;
                 cout <<  "target_speed: " <<  d_id_targetspeeds[car_id] << endl;
-                cout << "current_speed: " <<  current_speed << endl;
+                cout << "current_speed: " <<  cur_speed << endl;
 
 
                 if(cur_speed == 0)
