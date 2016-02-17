@@ -216,7 +216,7 @@ void traffic_light()
             {
                 rand_time = expntl(120);
                 light_change_time = rand_time + clock;
-                cout << "GREEN LIGHT!"
+                cout << "GREEN LIGHT!" << endl;
                 hold(rand_time);//hold for 2 minutes (120 sim time)
                 //change light after waiting
                 LIGHT_STATE = YELLOW;
