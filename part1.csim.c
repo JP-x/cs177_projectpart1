@@ -177,7 +177,7 @@ void add_traffic()		// this model segment spawns departing customers
 	create("add_traffic");
     //set light
     //UNCOMMENT FOR PART 2
-    //traffic_light();
+    traffic_light();
 
     new_driver(1);//initial car starts at 1 so that the tail of the car is at zero
     
