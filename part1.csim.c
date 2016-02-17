@@ -129,7 +129,7 @@ probably going to add speed as an argument later on
 bool look_ahead(int current_cell, int current_speed)
 {
     int look_ahead_length = 0;
-    int cur_cell = current_cell%NUM_CELLS; //prevent out of range access
+    int cur_cell = (current_cell+1)%NUM_CELLS; //prevent out of range access
 
     if(current_speed == 5){
         look_ahead_length = 8;
