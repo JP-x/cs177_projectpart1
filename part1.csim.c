@@ -46,6 +46,7 @@ double D[NUM_CELLS];//default -1 means unoccupied cell?
 
 //MAY REMOVE
 int d_id_movement[5];//each slot matches driver process successful movements
+int d_id_taillocations[100];//used for checking when moving to another cell
 
 int d_id_speeds[100];//max 100 cars. ID 0 refers to car A, ID 1 refers to car B
 int d_id_targetspeeds[100];//used for randomly generated speeds
@@ -403,11 +404,15 @@ void new_driver(int starting_cell)
                 //driver 1 second reaction time
                 hold(1);
                 //determine new speed
-                int infr_speed = infront_speed(car_id);
+                int infr_speed = 0;
                 if( (LIGHT_STATE == YELLOW || LIGHT_STATE == RED) && nose_cell >= 110)//if in range BRAKE FOR LIGHT
                 {
                     cout << "car_id: " << car_id << " slowing down for light." << endl;
                     infr_speed = 0;
+                }
+                else
+                {
+                    infr_speed = infront_speed(car_id);
                 }
                 brake(cur_speed, infr_speed);
                 //cout << "car_id: " << car_id << "braking." << endl;
