@@ -397,6 +397,8 @@ void new_driver(int starting_cell)
                 int infr_speed = infront_speed(car_id);
                 brake(cur_speed, infr_speed);
 
+                if(cur_speed )
+
                 cout << "decreasing speed" << endl;
                 cout <<  "target_speed: " <<  d_id_targetspeeds[car_id] << endl;
                 cout << "current_speed: " <<  cur_speed << endl;
@@ -486,6 +488,13 @@ void new_driver(int starting_cell)
 
 int infront_speed(int c_id)
 {
+    //case where only 1 car on road
+    if(NUM_CARS == 1)
+    {
+        return 0;
+    }
+
+
     if(c_id == 0)//lfirst car is looking at the last cars speed (case of overlapping car)
     {
         return d_id_speeds[NUM_CARS-1];
