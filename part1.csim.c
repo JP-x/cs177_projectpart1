@@ -79,11 +79,18 @@ extern "C" void sim()		// main process
 //set all cells to be unoccupied
 void init()
 {
+    //initialize departure times
     for(int i = 0; i < NUM_CELLS ; i++)
     {
         D[i] = -1;
     }
 
+    //int d_id_speeds[100]
+    //initialize driver speeds
+    for(int i = 0 ; i < 100; i++)
+    {
+        d_id_speeds[i] = -1;
+    }
     //times that a car occupies at speed[x]
     //given 'speeds' in specifications
     
@@ -315,7 +322,7 @@ void new_driver(int starting_cell)
             //+1 to compensate for extra cell while moving
             //otherwise look ahead would catch the car that looking ahead
             //to determine that it is being blocked by itself
-            if(look_ahead(current_cell+1,cur_speed) && cur_speed < d_id_targetspeeds[car_id])//clear to accelerate
+            if(look_ahead(current_cell+1,cur_speed) && cur_speed <= d_id_targetspeeds[car_id])//clear to accelerate
             {
                 //car can move set new state to moving
                 car_state = MOVING;
