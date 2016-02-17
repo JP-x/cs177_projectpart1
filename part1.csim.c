@@ -315,12 +315,16 @@ void new_driver(int starting_cell)
             //+1 to compensate for extra cell while moving
             //otherwise look ahead would catch the car that looking ahead
             //to determine that it is being blocked by itself
-            if(look_ahead(current_cell+1,cur_speed))//clear to accelerate
+            if(look_ahead(current_cell+1,cur_speed) && cur_speed < d_id_targetspeeds[car_id])//clear to accelerate
             {
                 //car can move set new state to moving
                 car_state = MOVING;
                 //increase speed (if not at target)
                 accelerate(cur_speed, car_id);
+                d_id_speeds[car_id] = cur_speed;
+                cout << "increasing speed" << endl;
+                cout <<  "target_speed: " <<  d_id_targetspeeds[car_id] << endl;
+                cout << "current_speed: " <<  current_speed << endl;
                 //cout << driver_process_id << " moving to cell: " << needed_cell << endl;
                 //get a new set of cells to move to
                 tail_cell = current_cell-1;
@@ -385,6 +389,12 @@ void new_driver(int starting_cell)
                 //determine new speed
                 int infr_speed = infront_speed(car_id);
                 brake(cur_speed, infr_speed);
+
+                cout << "decreasing speed" << endl;
+                cout <<  "target_speed: " <<  d_id_targetspeeds[car_id] << endl;
+                cout << "current_speed: " <<  current_speed << endl;
+
+
                 if(cur_speed == 0)
                 {
                     car_state = STOPPED;
@@ -412,7 +422,9 @@ void new_driver(int starting_cell)
                 //release cells
                 (*road)[tail_cell].release(); //release cell in facility
                 (*road)[nose_cell].release();
-                if(!is_empty(nose1_cell))//case where just starting to move do not want to release an empty cell
+                //possible problem...
+                //may release a cell that does not belong to current car
+                if(!is_empty(nose1_cell) && car_state == MOVING)//case where just starting to move do not want to release an empty cell
                 {
                     (*road)[nose1_cell].release();//moving so occupying 3 cells
                     D[nose1_cell] = -1;
@@ -450,6 +462,7 @@ void new_driver(int starting_cell)
                 {
                     number_movements++;
                 }
+                d_id_speeds[car_id] = cur_speed;
                 //cout << process_name() << " moved " << number_movements << " times.\n";
                 //driver 1 second reaction time
                 hold(1);
