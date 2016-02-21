@@ -46,7 +46,7 @@ int infront_speed(int c_id);
 int rand_speed();
 //array containing all departure times
 double D[NUM_CELLS];//default -1 means unoccupied cell?
-int locations[NUM_CELL];
+int locations[NUM_CELLS]; //may use to fix problems with ownership
 
 //MAY REMOVE
 int d_id_movement[5];//each slot matches driver process successful movements
@@ -366,7 +366,7 @@ void new_driver(int starting_cell)
                 hold(1);
                 //determine new speed
                 move_and_brake(current_cell,cur_speed,car_id,car_state);
-                
+
                 if(car_state != STOPPED)
                 {
                      number_movements++;
@@ -544,7 +544,7 @@ void move_and_accelerate(int &cell, int &spd, int car_id, int &c_state)
 
 }
 
-void move_and_brake(int &cell, int &spd, int car_id, int &c_state);
+void move_and_brake(int &cell, int &spd, int car_id, int &c_state)
 {
     int infr_speed = 0;
     double departure_time = 0.0;
