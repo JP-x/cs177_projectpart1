@@ -39,12 +39,14 @@ bool is_empty(int desired_cell);
 void accelerate(int &speed, int car_id);
 void brake(int &speed, int ahead_speed);
 void move_from_stopped();
-void move(int &cell, int speed, int car_id);
+void move_and_accelerate(int &cell, int &spd, int car_id, int &c_state);
+void move_and_brake(int &cell, int &spd, int car_id, int &c_state);
 //return car speed
 int infront_speed(int c_id);
 int rand_speed();
 //array containing all departure times
 double D[NUM_CELLS];//default -1 means unoccupied cell?
+int locations[NUM_CELL];
 
 //MAY REMOVE
 int d_id_movement[5];//each slot matches driver process successful movements
@@ -342,59 +344,7 @@ void new_driver(int starting_cell)
                 //car can move set new state to moving
                 car_state = MOVING;
                 //increase speed (if not at target)
-                if(cur_speed == 0)
-                {
-                    cout << "car_id: " << car_id <<  "no longer stopped" << endl;
-                }
-                accelerate(cur_speed, car_id);
-                d_id_speeds[car_id] = cur_speed;
-
-                //cout << "increasing speed" << endl;
-                //cout <<  "target_speed: " <<  d_id_targetspeeds[car_id] << endl;
-                //cout << "current_speed: " <<  cur_speed << endl;
-                //cout << driver_process_id << " moving to cell: " << needed_cell << endl;
-                //get a new set of cells to move to
-                tail_cell = current_cell-1;
-                nose_cell = current_cell;
-                nose1_cell = (current_cell+1)%NUM_CELLS;//prevent out of range 
-
-                if(tail_cell == -1)// occurs when nose is at 0
-                {
-                    tail_cell = 119;
-                }
-                //determine which cells to grab next
-                int next_tailcell = next_cell(tail_cell);
-                int next_nosecell = next_cell(nose_cell);
-                int next_nose1cell = next_cell(nose1_cell);
-
-                //release cells
-                (*road)[tail_cell].release(); //release cell in facility
-                (*road)[nose_cell].release();
-                if(!is_empty(nose1_cell))//case where just starting to move do not want to release an empty cell
-                {
-                    (*road)[nose1_cell].release();//moving so occupying 3 cells
-                }
-                D[tail_cell] = -1;
-                D[nose_cell] = -1;
-                D[nose1_cell] = -1;
-
-                //set new cells
-                tail_cell = next_tailcell;
-                nose_cell = next_nosecell;
-                nose1_cell = next_nose1cell;
-
-                //set new departure time
-                departure_time = clock + speed[cur_speed];
-                D[tail_cell] = departure_time;
-                D[nose_cell] = departure_time;
-                D[nose1_cell] = departure_time;
-
-                //update cell
-                current_cell = needed_cell;
-                (*road)[tail_cell].reserve();
-                (*road)[nose_cell].reserve();
-                (*road)[nose1_cell].reserve();
-                
+                move_and_accelerate(current_cell,cur_speed,car_id,car_state);
                 //check if completion of lap
                 if(number_movements >= 120)
                 {
@@ -415,81 +365,10 @@ void new_driver(int starting_cell)
                 //driver 1 second reaction time
                 hold(1);
                 //determine new speed
-                int infr_speed = 0;
-                if( (LIGHT_STATE == YELLOW || LIGHT_STATE == RED) && nose_cell >= 110 && nose_cell != CROSSWALK1 && nose_cell != CROSSWALK2)//if in range BRAKE FOR LIGHT
-                {
-                    cout << "car_id: " << car_id << " slowing down for light." << endl;
-                    infr_speed = 0;
-                }
-                else
-                {
-                    infr_speed = infront_speed(car_id);
-                }
-                brake(cur_speed, infr_speed);
-                //cout << "car_id: " << car_id << "braking." << endl;
+                move_and_brake(current_cell,cur_speed,car_id,car_state);
                 
-
-                //cout << "decreasing speed" << endl;
-                //cout <<  "target_speed: " <<  d_id_targetspeeds[car_id] << endl;
-                //cout << "current_speed: " <<  cur_speed << endl;
-
-
-                if(cur_speed == 0)
-                {
-                    car_state = STOPPED;
-                    cout << "car_id: " << car_id <<" STOPPED FOR LIGHT." << endl;
-                    //(*road)[nose1_cell].release(); //stopped release nose1cell MIGHT NOT NEED
-                }
-                else
-                {
-                    car_state = MOVING;
-                }
-                //cout << driver_process_id << " moving to cell: " << needed_cell << endl;
-                //get a new set of cells to move to
-                tail_cell = current_cell-1;
-                nose_cell = current_cell;
-                nose1_cell = (current_cell+1)%NUM_CELLS;//prevent out of range 
-
-                if(tail_cell == -1)// occurs when nose is at 0
-                {
-                    tail_cell = 119;
-                }
-                //determine which cells to grab next
-                int next_tailcell = next_cell(tail_cell);
-                int next_nosecell = next_cell(nose_cell);
-                int next_nose1cell = next_cell(nose1_cell);
-
-                //release cells
-                (*road)[tail_cell].release(); //release cell in facility
-                (*road)[nose_cell].release();
-                //possible problem...
-                //may release a cell that does not belong to current car
-                if(!is_empty(nose1_cell) && car_state == MOVING)//case where just starting to move do not want to release an empty cell
-                {
-                    (*road)[nose1_cell].release();//moving so occupying 3 cells
-                    D[nose1_cell] = -1;
-                }
-                D[tail_cell] = -1;
-                D[nose_cell] = -1;
-
-                //set new cells
-                tail_cell = next_tailcell;
-                nose_cell = next_nosecell;
-                nose1_cell = next_nose1cell;
-
-                //set new departure time
-                departure_time = clock + speed[cur_speed];
-                D[tail_cell] = departure_time;
-                D[nose_cell] = departure_time;
-
-                //update cell
-                current_cell = needed_cell;
-                (*road)[tail_cell].reserve();
-                (*road)[nose_cell].reserve();
                 if(car_state != STOPPED)
                 {
-                    D[nose1_cell] = departure_time;
-                    (*road)[nose1_cell].reserve();
                      number_movements++;
                 }
                 //check if completion of lap
@@ -594,12 +473,172 @@ void target_speed_generator()
     }
 }
 
-void accelerate(int &speed, int car_id)
+void accelerate(int &spd, int car_id)
 {
-    if(speed < d_id_targetspeeds[car_id] )
+    if(spd < d_id_targetspeeds[car_id] )
     {
-        speed++;
+        spd++;
     }
     //don't change speed unless needed
+
+}
+
+
+void move_and_accelerate(int &cell, int &spd, int car_id, int &c_state)
+{
+    double departure_time = 0.0;
+    int tail_cell = 0;
+    int nose_cell = 0;
+    int nose1_cell = 0;
+    //car can move set new state to moving
+    //increase speed (if not at target)
+    if(spd == 0)
+    {
+        cout << "car_id: " << car_id <<  " no longer stopped" << endl;
+    }
+    accelerate(spd, car_id);
+    d_id_speeds[car_id] = spd;//update cars speed
+
+    //get a new set of cells to move to
+    tail_cell = cell-1;
+    nose_cell = cell;
+    nose1_cell = (cell+1)%NUM_CELLS;//prevent out of range 
+
+    if(tail_cell == -1)// occurs when nose is at 0
+    {
+        tail_cell = 119;
+    }
+    //determine which cells to grab next
+    int next_tailcell = next_cell(tail_cell);
+    int next_nosecell = next_cell(nose_cell);
+    int next_nose1cell = next_cell(nose1_cell);
+
+    //release cells
+    (*road)[tail_cell].release(); //release cell in facility
+    (*road)[nose_cell].release();
+    (*road)[nose1_cell].release();//moving so occupying 3 cells
+    D[tail_cell] = -1;
+    D[nose_cell] = -1;
+    D[nose1_cell] = -1;
+
+    //set new cells
+    tail_cell = next_tailcell;
+    nose_cell = next_nosecell;
+    nose1_cell = next_nose1cell;
+
+    //set new departure time
+    departure_time = clock + speed[spd];
+    D[tail_cell] = departure_time;
+    D[nose_cell] = departure_time;
+    D[nose1_cell] = departure_time;
+
+    //update cell
+    cell = nose_cell;
+    (*road)[tail_cell].reserve();
+    (*road)[nose_cell].reserve();
+    (*road)[nose1_cell].reserve();
+    
+    //cout << process_name() << " moved " << number_movements << " times.\n";
+    //driver 1 second reaction time
+    //hold(1);
+
+}
+
+void move_and_brake(int &cell, int &spd, int car_id, int &c_state);
+{
+    int infr_speed = 0;
+    double departure_time = 0.0;
+    int tail_cell = 0;
+    int nose_cell = 0;
+    int nose1_cell = 0;
+
+    if( (LIGHT_STATE == YELLOW || LIGHT_STATE == RED) && cell >= 110 && cell != CROSSWALK1 && cell != CROSSWALK2)//if in range BRAKE FOR LIGHT
+    {
+        cout << "car_id: " << car_id << " slowing down for light." << endl;
+        infr_speed = 0;
+    }
+    else
+    {
+        infr_speed = infront_speed(car_id);
+    }
+
+    //get 3 cells current occupying
+    nose_cell = cell;
+    nose1_cell = (cell+1)%NUM_CELLS;//prevent out of range 
+    tail_cell = cell-1;
+    if(tail_cell == -1)// occurs when nose is at 0
+    {
+        tail_cell = 119;
+    }
+
+    //moving car so occupying 3 cells
+    //release the 3 cells before braking
+    if(c_state == MOVING)
+    {
+        //release cells
+        (*road)[tail_cell].release(); //release cell in facility
+        (*road)[nose_cell].release();
+        (*road)[nose1_cell].release();
+        D[nose1_cell] = -1;
+        D[tail_cell] = -1;
+        D[nose_cell] = -1;
+    }
+    else
+    {
+        //release 2 cell
+        (*road)[nose_cell].release();
+        (*road)[tail_cell].release();
+        D[tail_cell] = -1;
+        D[nose_cell] = -1;
+    }
+
+    brake(cur_speed, infr_speed);
+    //cout << "car_id: " << car_id << "braking." << endl;
+
+    //get next_cells needed
+    int next_tailcell = next_cell(tail_cell);
+    int next_nosecell = next_cell(nose_cell);
+    int next_nose1cell = next_cell(nose1_cell);
+
+
+    //cout << "decreasing speed" << endl;
+    //cout <<  "target_speed: " <<  d_id_targetspeeds[car_id] << endl;
+    //cout << "current_speed: " <<  cur_speed << endl;
+
+    //set new departure time
+    departure_time = clock + speed[spd];
+
+    if(spd == 0)
+    {
+        c_state = STOPPED;
+        cout << "car_id: " << car_id <<" STOPPED." << endl;
+
+        //set new departure time
+        D[tail_cell] = departure_time;
+        D[nose_cell] = departure_time;
+        (*road)[tail_cell].reserve();
+        (*road)[nose_cell].reserve();
+
+    }
+    else
+    {
+        c_state = MOVING;
+        //set new cells
+        tail_cell = next_tailcell;
+        nose_cell = next_nosecell;
+        nose1_cell = next_nose1cell;
+        (*road)[tail_cell].reserve();
+        (*road)[nose_cell].reserve();
+        (*road)[nose1_cell].reserve();
+
+        D[nose1_cell] = departure_time;
+        D[nose_cell] = departure_time;
+        D[tail_cell] = departure_time;
+
+    }
+    //cout << driver_process_id << " moving to cell: " << needed_cell << endl;
+    //get a new set of cells to move to
+    d_id_speeds[car_id] = spd;
+
 
 }
