@@ -21,7 +21,7 @@ using namespace std;
 #define RED 2
 #define STOPPED 0
 #define MOVING 1
-#define SIM_LENGTH 10000
+#define SIM_LENGTH 2000
 
 facility_set *road;
 string driver_id = "A"; //character incremented after a call to new_driver
@@ -53,7 +53,7 @@ int d_id_targetspeeds[100];//used for randomly generated speeds
 double speed[6];
 
 //other globals for tracking
-int LIGHT_STATE = 0;
+int LIGHT_STATE = GREEN;
 int NUM_CARS = 1;
 int car_ids = 0;//used for d_id_speeds
 
@@ -74,6 +74,7 @@ extern "C" void sim()		// main process
 
     add_traffic();		// start a stream of departing customers
     target_speed_generator();
+    //traffic_light();
 	hold (SIM_LENGTH);		// wait for a whole day (in minutes) to pass
 	//report();
 }
@@ -178,7 +179,6 @@ void add_traffic()		// this model segment spawns departing customers
 	create("add_traffic");
     //set light
     //UNCOMMENT FOR PART 2
-    traffic_light();
 
     //new_driver(1);//initial car starts at 1 so that the tail of the car is at zero
     
@@ -312,7 +312,7 @@ void new_driver(int starting_cell)
     (*road)[tail_cell].reserve();
     current_cell = starting_cell;
     d_id_speeds[car_id] = 0;
-
+    
     while(clock < SIM_LENGTH)//keep going in circles until time ends
     {
         //cout << "current_clock: " << clock << endl;
@@ -334,7 +334,7 @@ void new_driver(int starting_cell)
                 //increase speed (if not at target)
                 if(cur_speed == 0)
                 {
-                    cout << "car_id:" << car_id <<  "no longer stopped" << endl;
+                    cout << "car_id: " << car_id <<  "no longer stopped" << endl;
                 }
                 accelerate(cur_speed, car_id);
                 d_id_speeds[car_id] = cur_speed;
@@ -389,7 +389,7 @@ void new_driver(int starting_cell)
                 {
                     laps++;
                     number_movements = 0;
-                    cout << "car_id: " << car_id << "completed a lap." << endl;
+                    cout << "car_id: " << car_id << " completed a lap." << endl;
                 }
                 else
                 {
@@ -405,7 +405,7 @@ void new_driver(int starting_cell)
                 hold(1);
                 //determine new speed
                 int infr_speed = 0;
-                if( (LIGHT_STATE == YELLOW || LIGHT_STATE == RED) && nose_cell >= 110)//if in range BRAKE FOR LIGHT
+                if( (LIGHT_STATE == YELLOW || LIGHT_STATE == RED) && nose_cell >= 110 && nose_cell != CROSSWALK1 && nose_cell != CROSSWALK2)//if in range BRAKE FOR LIGHT
                 {
                     cout << "car_id: " << car_id << " slowing down for light." << endl;
                     infr_speed = 0;
@@ -523,9 +523,11 @@ int infront_speed(int c_id)
     {
         return d_id_speeds[0];
     }
-    else //other cars just look in front of them
+    else //other cars just look in front of them 
     {
-        return d_id_speeds[c_id+1];
+        //kind of backwards in that -1 refers to the car in front
+        //cout << "c_id: " << c_id << " getting speed of " << c_id-1 << endl;
+        return d_id_speeds[c_id-1];
     }
 }
 
