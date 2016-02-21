@@ -524,7 +524,7 @@ void move_and_accelerate(int &cell, int &spd, int car_id, int &c_state)
     d_id_speeds[car_id] = spd;//update cars speed
 
     //car can move set new state to moving
-    car_state = MOVING;
+    c_state = MOVING;
 
     //determine which cells to grab next
     int next_tailcell = next_cell(tail_cell);
