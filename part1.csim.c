@@ -281,7 +281,7 @@ void new_driver(int starting_cell)
     /////////////////////////////////
     //trace_on();
     //
-   
+    bool can_move = false;
     double departure_time = 0.0;
     int needed_cell = 0;
     int car_state = STOPPED;
@@ -326,10 +326,18 @@ void new_driver(int starting_cell)
             //release current_cell
             //determine cell to travel to next (needed cell j)
             needed_cell = next_cell(current_cell);
+            if(car_state == MOVING)
+            {
+                can_move = look_ahead(current_cell+2,cur_speed);//look 1 unit ahead of nose1
+            }
+            else
+            {
+                can_move = look_ahead(current_cell+1,cur_speed);//look 1 unit ahead of nose
+            }
             //+1 to compensate for extra cell while moving
             //otherwise look ahead would catch the car that looking ahead
             //to determine that it is being blocked by itself
-            if(look_ahead(current_cell+1,cur_speed) && cur_speed <= d_id_targetspeeds[car_id])//clear to accelerate
+            if( can_move && cur_speed <= d_id_targetspeeds[car_id])//clear to accelerate
             {
                 //car can move set new state to moving
                 car_state = MOVING;
