@@ -38,6 +38,8 @@ void init(); //sets cell values to -1 and init speed array
 bool is_empty(int desired_cell);
 void accelerate(int &speed, int car_id);
 void brake(int &speed, int ahead_speed);
+void move_from_stopped();
+void move(int &cell, int speed, int car_id);
 //return car speed
 int infront_speed(int c_id);
 int rand_speed();
@@ -338,6 +340,7 @@ void new_driver(int starting_cell)
                 }
                 accelerate(cur_speed, car_id);
                 d_id_speeds[car_id] = cur_speed;
+
                 //cout << "increasing speed" << endl;
                 //cout <<  "target_speed: " <<  d_id_targetspeeds[car_id] << endl;
                 //cout << "current_speed: " <<  cur_speed << endl;
@@ -383,7 +386,7 @@ void new_driver(int starting_cell)
                 (*road)[tail_cell].reserve();
                 (*road)[nose_cell].reserve();
                 (*road)[nose1_cell].reserve();
-                number_movements++;
+                
                 //check if completion of lap
                 if(number_movements >= 120)
                 {
@@ -546,7 +549,7 @@ void brake(int &speed, int ahead_speed)
 
 int rand_speed()
 {
-    return rand()%4 + 2 ; // range [2,5]
+    return uniform_int(2,5) ; // range [2,5]
 }
 
 void target_speed_generator()
@@ -556,7 +559,7 @@ void target_speed_generator()
     //setup random speeds for every car
     for(int i = 0; i < 100 ; i++)
     {
-        d_id_targetspeeds[i] = rand_speed();
+        d_id_targetspeeds[i] = uniform_int(2,5);
     }
 
     double wait_time = uniform(120,240);
@@ -568,7 +571,7 @@ void target_speed_generator()
             //generate a new set of random speeds
             for(int i = 0; i < 100 ; i++)
             {
-                d_id_targetspeeds[i] = rand_speed();
+                d_id_targetspeeds[i] = uniform_int(2,5);
             }
             //set new generation time
             wait_time = uniform(120,240);
