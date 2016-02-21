@@ -592,7 +592,7 @@ void move_and_brake(int &cell, int &spd, int car_id, int &c_state)
         D[nose_cell] = -1;
     }
 
-    brake(cur_speed, infr_speed);
+    brake(spd, infr_speed);
     //cout << "car_id: " << car_id << "braking." << endl;
 
     //get next_cells needed
