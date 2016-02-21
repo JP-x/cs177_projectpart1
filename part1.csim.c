@@ -298,6 +298,7 @@ void new_driver(int starting_cell)
     int number_movements = 0;
     //increment after 120 movements
     int laps = 0;
+    
     //nose1 is set when moving
     int nose1_cell = (starting_cell+1)%NUM_CELLS;//prevent out of range
     int nose_cell = starting_cell;
@@ -341,8 +342,6 @@ void new_driver(int starting_cell)
             //to determine that it is being blocked by itself
             if( can_move && cur_speed <= d_id_targetspeeds[car_id])//clear to accelerate
             {
-                //car can move set new state to moving
-                car_state = MOVING;
                 //increase speed (if not at target)
                 move_and_accelerate(current_cell,cur_speed,car_id,car_state);
                 //check if completion of lap
@@ -490,36 +489,47 @@ void move_and_accelerate(int &cell, int &spd, int car_id, int &c_state)
     int tail_cell = 0;
     int nose_cell = 0;
     int nose1_cell = 0;
-    //car can move set new state to moving
-    //increase speed (if not at target)
-    if(spd == 0)
-    {
-        cout << "car_id: " << car_id <<  " no longer stopped" << endl;
-    }
-    accelerate(spd, car_id);
-    d_id_speeds[car_id] = spd;//update cars speed
 
-    //get a new set of cells to move to
-    tail_cell = cell-1;
+    //get a set of cells
     nose_cell = cell;
     nose1_cell = (cell+1)%NUM_CELLS;//prevent out of range 
-
+    tail_cell = cell-1;
     if(tail_cell == -1)// occurs when nose is at 0
     {
         tail_cell = 119;
     }
+
+    //release 2 cells at stopped location
+    if(c_state == STOPPED)
+    {
+        cout << "car_id: " << car_id <<  " no longer stopped" << endl;
+        (*road)[tail_cell].release(); //release cell in facility
+        (*road)[nose_cell].release();
+        D[tail_cell] = -1;
+        D[nose_cell] = -1;
+    }
+    else
+    {
+        //release 3 cells since moving
+        (*road)[tail_cell].release(); //release cell in facility
+        (*road)[nose_cell].release();
+        (*road)[nose1_cell].release();//moving so occupying 3 cells
+        D[tail_cell] = -1;
+        D[nose_cell] = -1;
+        D[nose1_cell] = -1;
+    }
+
+     //increase speed (if not at target)
+    accelerate(spd, car_id);
+    d_id_speeds[car_id] = spd;//update cars speed
+
+    //car can move set new state to moving
+    car_state = MOVING;
+
     //determine which cells to grab next
     int next_tailcell = next_cell(tail_cell);
     int next_nosecell = next_cell(nose_cell);
     int next_nose1cell = next_cell(nose1_cell);
-
-    //release cells
-    (*road)[tail_cell].release(); //release cell in facility
-    (*road)[nose_cell].release();
-    (*road)[nose1_cell].release();//moving so occupying 3 cells
-    D[tail_cell] = -1;
-    D[nose_cell] = -1;
-    D[nose1_cell] = -1;
 
     //set new cells
     tail_cell = next_tailcell;
@@ -538,10 +548,6 @@ void move_and_accelerate(int &cell, int &spd, int car_id, int &c_state)
     (*road)[nose_cell].reserve();
     (*road)[nose1_cell].reserve();
     
-    //cout << process_name() << " moved " << number_movements << " times.\n";
-    //driver 1 second reaction time
-    //hold(1);
-
 }
 
 void move_and_brake(int &cell, int &spd, int car_id, int &c_state)
