@@ -328,11 +328,11 @@ void new_driver(int starting_cell)
             needed_cell = next_cell(current_cell);
             if(car_state == MOVING)
             {
-                can_move = look_ahead(current_cell+2,cur_speed);//look 1 unit ahead of nose1
+                can_move = look_ahead(current_cell+1,cur_speed);//look 1 unit ahead of nose1
             }
             else
             {
-                can_move = look_ahead(current_cell+1,cur_speed);//look 1 unit ahead of nose
+                can_move = look_ahead(current_cell,cur_speed);//look 1 unit ahead of nose
             }
             //+1 to compensate for extra cell while moving
             //otherwise look ahead would catch the car that looking ahead
