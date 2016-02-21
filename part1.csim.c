@@ -643,7 +643,10 @@ void move_and_brake(int &cell, int &spd, int car_id, int &c_state)
 
     }
     //cout << driver_process_id << " moving to cell: " << needed_cell << endl;
-    //get a new set of cells to move to
+
+    //update cell
+    cell = nose_cell;
+    //update speed
     d_id_speeds[car_id] = spd;
 
 
