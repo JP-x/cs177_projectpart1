@@ -1,0 +1,10 @@
+car_id[0] laps: 34
+car_id[1] laps: 34
+car_id[2] laps: 34
+car_id[3] laps: 34
+car_id[4] laps: 33
+car_id[5] laps: 33
+car_id[6] laps: 33
+car_id[7] laps: 33
+car_id[8] laps: 33
+car_id[9] laps: 33
