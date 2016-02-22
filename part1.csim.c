@@ -6,6 +6,7 @@
 #include "cpp.h"
 #include <string.h>
 #include <cstdio>
+#include <fstream>
 #include <time.h> //not sure if conflicts with csim
 using namespace std;
 #define NUM_CELLS 120		// number of cells on road
