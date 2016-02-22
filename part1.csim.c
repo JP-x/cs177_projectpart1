@@ -591,7 +591,7 @@ void move_and_brake(int &cell, int &spd, int car_id, int &c_state)
     else
     {
         infr_speed = infront_speed(car_id);
-        cout << "car_id: " << car_id << " matching infront speed. " << endl;
+        //cout << "car_id: " << car_id << " matching infront speed. " << endl;
     }
 
     //get 3 cells current occupying
