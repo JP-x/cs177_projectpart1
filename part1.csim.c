@@ -46,6 +46,7 @@ int infront_speed(int c_id);
 int rand_speed();
 
 void print_laps(int number_cars);
+void output_file (string file_name);
 //array containing all departure times
 double D[NUM_CELLS];//default -1 means unoccupied cell?
 int locations[NUM_CELLS]; //may use to fix problems with ownership
