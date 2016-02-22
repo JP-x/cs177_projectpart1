@@ -89,7 +89,7 @@ extern "C" void sim()		// main process
 	hold (SIM_LENGTH);		// wait for a whole day (in minutes) to pass
     print_laps(NUM_CARS);
     output_file("lap_results.txt", NUM_CARS);
-	//report();
+	report();
 }
 
 void print_laps(int number_cars)
