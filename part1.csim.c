@@ -371,6 +371,12 @@ void new_driver(int starting_cell)
                 {
                     number_movements++;
                 }
+
+                //some weird edge case that causes the car to reach the speed of light
+                if(NUM_CARS == 1)
+                {
+                    hold(1); 
+                }
                 //cout << process_name() << " moved " << number_movements << " times.\n";
                 //driver 1 second reaction time
                 //hold(1);
@@ -643,7 +649,7 @@ void move_and_brake(int &cell, int &spd, int car_id, int &c_state)
     if(spd == 0)
     {
         c_state = STOPPED;
-        cout << "car_id: " << car_id <<" STOPPED." << endl;
+        //cout << "car_id: " << car_id <<" STOPPED." << endl;
 
         //set new departure time
         D[tail_cell] = departure_time;
