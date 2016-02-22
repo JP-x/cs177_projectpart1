@@ -356,7 +356,7 @@ void new_driver(int starting_cell)
             if( can_move && cur_speed <= d_id_targetspeeds[car_id])//clear to accelerate
             {
                 //reaction time
-                hold(1);
+                //hold(1);
                 //increase speed (if not at target)
                 move_and_accelerate(current_cell,cur_speed,car_id,car_state);
                 //check if completion of lap
@@ -373,7 +373,7 @@ void new_driver(int starting_cell)
                 }
                 //cout << process_name() << " moved " << number_movements << " times.\n";
                 //driver 1 second reaction time
-                hold(1);
+                //hold(1);
             }
             else //look_ahead determines there is a car within range
             {//change speed because of obstruction
@@ -401,7 +401,7 @@ void new_driver(int starting_cell)
                 d_id_speeds[car_id] = cur_speed;
                 //cout << process_name() << " moved " << number_movements << " times.\n";
                 //driver 1 second reaction time
-                hold(1);
+                //hold(1);
             }
         }
         else
@@ -520,7 +520,7 @@ void move_and_accelerate(int &cell, int &spd, int car_id, int &c_state)
     //release 2 cells at stopped location
     if(c_state == STOPPED)
     {
-        cout << "car_id: " << car_id <<  " no longer stopped" << endl;
+        //cout << "car_id: " << car_id <<  " no longer stopped" << endl;
         (*road)[tail_cell].release(); //release cell in facility
         (*road)[nose_cell].release();
         D[tail_cell] = -1;
@@ -580,7 +580,7 @@ void move_and_brake(int &cell, int &spd, int car_id, int &c_state)
     {
         if(c_state == MOVING)
         {
-            cout << "car_id: " << car_id << " slowing down for light." << endl;
+            //cout << "car_id: " << car_id << " slowing down for light." << endl;
         }
         else
         {
@@ -591,6 +591,7 @@ void move_and_brake(int &cell, int &spd, int car_id, int &c_state)
     else
     {
         infr_speed = infront_speed(car_id);
+        cout << "car_id: " << car_id << " matching infront speed. " << endl;
     }
 
     //get 3 cells current occupying
