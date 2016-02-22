@@ -47,7 +47,7 @@ int infront_speed(int c_id);
 int rand_speed();
 
 void print_laps(int number_cars);
-void output_file (string file_name);
+void output_file (string file_name, int number_cars);
 //array containing all departure times
 double D[NUM_CELLS];//default -1 means unoccupied cell?
 int locations[NUM_CELLS]; //may use to fix problems with ownership
@@ -88,7 +88,7 @@ extern "C" void sim()		// main process
     //traffic_light();
 	hold (SIM_LENGTH);		// wait for a whole day (in minutes) to pass
     print_laps(NUM_CARS);
-    output_file("lap_results.txt");
+    output_file("lap_results.txt", NUM_CARS);
 	//report();
 }
 
@@ -690,7 +690,7 @@ void move_and_brake(int &cell, int &spd, int car_id, int &c_state)
 }
 
 
-void output_file (string file_name)
+void output_file (string file_name, int number_cars)
 {
     std::ofstream outfile;
     outfile.open(file_name.c_str());
