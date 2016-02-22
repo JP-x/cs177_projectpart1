@@ -78,7 +78,7 @@ extern "C" void sim()		// main process
 
     add_traffic();		// start a stream of departing customers
     target_speed_generator();
-    //traffic_light();
+    traffic_light();
 	hold (SIM_LENGTH);		// wait for a whole day (in minutes) to pass
 	//report();
 }
@@ -342,6 +342,8 @@ void new_driver(int starting_cell)
             //to determine that it is being blocked by itself
             if( can_move && cur_speed <= d_id_targetspeeds[car_id])//clear to accelerate
             {
+                //reaction time
+                hold(1);
                 //increase speed (if not at target)
                 move_and_accelerate(current_cell,cur_speed,car_id,car_state);
                 //check if completion of lap
