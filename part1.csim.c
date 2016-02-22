@@ -45,7 +45,7 @@ void move_and_brake(int &cell, int &spd, int car_id, int &c_state);
 int infront_speed(int c_id);
 int rand_speed();
 
-void print_laps();
+void print_laps(int number_cars);
 //array containing all departure times
 double D[NUM_CELLS];//default -1 means unoccupied cell?
 int locations[NUM_CELLS]; //may use to fix problems with ownership
@@ -58,7 +58,7 @@ int d_id_speeds[100];//max 100 cars. ID 0 refers to car A, ID 1 refers to car B
 int d_id_targetspeeds[100];//used for randomly generated speeds
 double speed[6];
 
-int laps_completed[10];
+int laps_completed[100];
 //other globals for tracking
 int LIGHT_STATE = GREEN;
 int NUM_CARS = 1;
@@ -83,13 +83,13 @@ extern "C" void sim()		// main process
     target_speed_generator();
     traffic_light();
 	hold (SIM_LENGTH);		// wait for a whole day (in minutes) to pass
-    print_laps();
+    print_laps(NUM_CARS);
 	//report();
 }
 
-void print_laps()
+void print_laps(int number_cars)
 {
-    for(int i = 0; i < 10 ; i++)
+    for(int i = 0; i < number_cars ; i++)
     {
         cout << "car_id[ " << i << "] laps: " << laps_completed[i]  << endl;
     }
