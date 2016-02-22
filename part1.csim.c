@@ -364,7 +364,7 @@ void new_driver(int starting_cell)
                 {
                     laps++;
                     number_movements = 0;
-                    cout << "car_id: " << car_id << " completed lap: " << laps << endl;
+                   // cout << "car_id: " << car_id << " completed lap: " << laps << endl;
                     laps_completed[car_id] = laps;
                 }
                 else
@@ -391,7 +391,7 @@ void new_driver(int starting_cell)
                 {
                     laps++;
                     number_movements = 0;
-                    cout << "car_id: " << car_id << " completed lap: " << laps << endl;
+                    //cout << "car_id: " << car_id << " completed lap: " << laps << endl;
                     laps_completed[car_id] = laps;
                 }
                 else
