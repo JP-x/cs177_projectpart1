@@ -351,7 +351,7 @@ void new_driver(int starting_cell)
                 {
                     laps++;
                     number_movements = 0;
-                    cout << "car_id: " << car_id << " completed a lap." << endl;
+                    cout << "car_id: " << car_id << " completed lap: " << laps << endl;
                 }
                 else
                 {
@@ -377,6 +377,7 @@ void new_driver(int starting_cell)
                 {
                     laps++;
                     number_movements = 0;
+                    cout << "car_id: " << car_id << " completed lap: " << laps << endl;
                 }
                 else
                 {
@@ -562,7 +563,14 @@ void move_and_brake(int &cell, int &spd, int car_id, int &c_state)
 
     if( (LIGHT_STATE == YELLOW || LIGHT_STATE == RED) && cell >= 110 && cell != CROSSWALK1 && cell != CROSSWALK2)//if in range BRAKE FOR LIGHT
     {
-        cout << "car_id: " << car_id << " slowing down for light." << endl;
+        if(c_state == MOVING)
+        {
+            cout << "car_id: " << car_id << " slowing down for light." << endl;
+        }
+        else
+        {
+            cout << "car_id: " << car_id << "stopped for light." << endl;
+        }
         infr_speed = 0;
     }
     else
