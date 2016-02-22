@@ -64,6 +64,8 @@ int LIGHT_STATE = GREEN;
 int NUM_CARS = 1;
 int car_ids = 0;//used for d_id_speeds
 
+
+
 extern "C" void sim()		// main process
 {
 	create("sim");
@@ -81,9 +83,10 @@ extern "C" void sim()		// main process
 
     add_traffic();		// start a stream of departing customers
     target_speed_generator();
-    traffic_light();
+    //traffic_light();
 	hold (SIM_LENGTH);		// wait for a whole day (in minutes) to pass
     print_laps(NUM_CARS);
+    output_file("lap_results.txt");
 	//report();
 }
 
@@ -682,4 +685,24 @@ void move_and_brake(int &cell, int &spd, int car_id, int &c_state)
     d_id_speeds[car_id] = spd;
 
 
+}
+
+
+void output_file (string file_name)
+{
+    std::ofstream outfile;
+    outfile.open(file_name.c_str());
+    if(!outfile.is_open())
+    {
+        cout << "Failed to open file: " << file_name << endl;
+        exit(0);
+        //return;
+    }
+    for(int i = 0; i < number_cars ; i++)
+    {
+        outfile << "car_id[" << i << "] laps: " << laps_completed[i]  << endl;
+    }
+
+    outfile.close();   
+    
 }
