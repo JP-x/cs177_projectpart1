@@ -88,11 +88,18 @@ extern "C" void sim()		// main process
     //set number of cars
     cout << "Enter number of cars on the road: ";
     cin >> NUM_CARS;
+    
+    string yn;
+    cout << "Traffic Light(Y/N): ";
+    cin >> yn; 
     //NUM_CARS = 2;
     //trace_on();
-    add_traffic();		// start a stream of departing customers
+        add_traffic();		// start a stream of departing customers
+   
     target_speed_generator();
-    traffic_light();
+    
+    if(yn == "Y" || yn == "y")
+        traffic_light();
 	hold (SIM_LENGTH);		// wait for a whole day (in minutes) to pass
     print_laps(NUM_CARS);
     output_file("lightlap_results.txt", NUM_CARS);
@@ -291,8 +298,8 @@ void traffic_light()
                 //CARS ARE CONSTANTLY MOVING
                 //SO THE LIGHT MAY NEVER CHANGE
                 //change light after waiting
-                if(is_empty(CROSSWALK1) && is_empty(CROSSWALK2))
-                {
+                //if(is_empty(CROSSWALK1) && is_empty(CROSSWALK2))
+               // {
                     LIGHT_STATE = RED;
                     //reserve spaces for crosswalk
                     (*road)[CROSSWALK1].reserve();
@@ -302,7 +309,7 @@ void traffic_light()
                     light_change_time = rand_time + clock;
                     D[CROSSWALK1] = light_change_time;
                     D[CROSSWALK2] = light_change_time;
-                }
+              //  }
             }
             else if(LIGHT_STATE == RED)
             {
